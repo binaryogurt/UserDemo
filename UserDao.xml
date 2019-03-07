@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.user.dao.UserDao">
+
+	<resultMap type="com.user.bean.User" id="userMap">
+		<id column="id" property="id"/>
+		<result column="loginname" property="loginname"/>
+		<result column="password" property="password"/>
+	</resultMap>
+	
+	<!-- 条件查询使用like关键字 比如说查询带有王字的 就写like '%王%' -->
+	<select id="queryUserCount" parameterType="com.user.bean.User" resultType="int">
+		select count(1) from tbl_user
+		<where>
+			<if test="loginname != null and loginname !=''">
+				and loginname like '%${loginname}%'
+			</if>
+		</where>
+	</select>
+	
+	<!-- mysql分页的两个参数 limit 记录开始下标, 每页记录数 -->
+	<select id="queryUserList" parameterType="com.user.bean.User" resultMap="userMap">
+		select id, loginname, password  
+		from tbl_user
+		<where>
+			<if test="loginname != null and loginname !=''">
+				and loginname like '%${loginname}%'
+			</if>
+		</where>
+		limit #{offset}, #{limit}
+	</select>
+	
+	<insert id="addUser" parameterType="com.user.bean.User">
+		insert into tbl_user(id, loginname, password) values(#{id}, #{loginname}, #{password})
+	</insert>
+	
+	<!-- 更新语句使用<trim>标签 拼接set语句 -->
+	<update id="updateUser" parameterType="com.user.bean.User">
+		update tbl_user
+		<trim prefix="set" suffixOverrides=",">
+	        <if test="loginname != null and loginname != ''">
+	        	loginname = #{loginname},
+	    	</if>
+			<if test="password != null and password != ''">
+	        	password = #{password},
+	    	</if>
+    	</trim>
+    	where id = #{id}
+	</update>
+	
+	<delete id="deleteUser" parameterType="java.lang.String">
+		delete from tbl_user where id = #{id}
+	</delete>
+	
+	<!-- 批量删除 参数为id的集合 使用foreach标签循环删除 -->
+	<!-- item为给集合中每个元素取的别名 -->
+	<delete id="deleteBatchUser" parameterType="java.util.List">
+		delete from tbl_user where id in
+		<foreach item="item" collection="list" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+</mapper>
